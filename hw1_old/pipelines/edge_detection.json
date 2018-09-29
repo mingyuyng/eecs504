@@ -3,7 +3,7 @@
         "name": "edge_detection",
         "type": "eta.core.types.Pipeline",
         "version": "0.1.0",
-        "description": "A pipeline for determining the edges of an image"
+        "description": "A pipeline for determining the edges of an image and grouping them into line segments"
     },
     "inputs": ["input_image"],
     "outputs": ["edges_only_image"],
@@ -68,11 +68,11 @@
             "sink": "canny_edge_detector.input_image"
         },
         {
-            "source": "sobel_horizontal.filtered_matrix",
+            "source": "sobel_horizontal.filtered_image",
             "sink": "canny_edge_detector.sobel_horizontal_result"
         },
         {
-            "source": "sobel_vertical.filtered_matrix",
+            "source": "sobel_vertical.filtered_image",
             "sink": "canny_edge_detector.sobel_vertical_result"
         },
         {

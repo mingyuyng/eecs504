@@ -1,12 +1,12 @@
 {
     "info": {
-        "name": "edge_detection",
+        "name": "potts_energy_gaussian",
         "type": "eta.core.types.Pipeline",
         "version": "0.1.0",
-        "description": "A pipeline for determining the edges of an image"
+        "description": "A pipeline for calculating the Pott's Energy of an image after convolving with a Gaussian kernel."
     },
     "inputs": ["input_image"],
-    "outputs": ["edges_only_image"],
+    "outputs": ["potts_energy_output"],
     "modules": {
         "gaussian_convolution": {
             "name": "convolution",
@@ -15,39 +15,33 @@
             ],
             "set_parameters": {
                 "kernel_type": "gaussian",
-                "image_type": "grayscale",
-                "gaussian_sigma": 0.001
+                "image_type": "grayscale"
             }
         },
-        "sobel_horizontal": {
+        "x_derivative_convolution": {
             "name": "convolution",
             "tunable_parameters": [
                 "kernel_type", "image_type"
             ],
             "set_parameters": {
-                "kernel_type": "sobel_horizontal",
+                "kernel_type": "x_derivative",
                 "image_type": "grayscale"
             }
         },
-        "sobel_vertical": {
+        "y_derivative_convolution": {
             "name": "convolution",
             "tunable_parameters": [
                 "kernel_type", "image_type"
             ],
             "set_parameters": {
-                "kernel_type": "sobel_vertical",
+                "kernel_type": "y_derivative",
                 "image_type": "grayscale"
             }
         },
-        "canny_edge_detector": {
-            "name": "canny_edge_detector",
-            "tunable_parameters": [
-                "low_threshold", "high_threshold"
-            ],
-            "set_parameters": {
-                "low_threshold": 31,
-                "high_threshold": 91 
-            }
+        "calculate_potts_energy": {
+            "name": "calculate_potts_energy",
+            "tunable_parameters": [],
+            "set_parameters": {}
         }
     },
     "connections": [
@@ -57,27 +51,23 @@
         },
         {
             "source": "gaussian_convolution.filtered_image",
-            "sink": "sobel_horizontal.input_image"
+            "sink": "x_derivative_convolution.input_image"
         },
         {
             "source": "gaussian_convolution.filtered_image",
-            "sink": "sobel_vertical.input_image"
+            "sink": "y_derivative_convolution.input_image"
         },
         {
-            "source": "gaussian_convolution.filtered_image",
-            "sink": "canny_edge_detector.input_image"
+            "source": "x_derivative_convolution.filtered_image",
+            "sink": "calculate_potts_energy.x_derivative_path"
         },
         {
-            "source": "sobel_horizontal.filtered_matrix",
-            "sink": "canny_edge_detector.sobel_horizontal_result"
+            "source": "y_derivative_convolution.filtered_image",
+            "sink": "calculate_potts_energy.y_derivative_path"
         },
         {
-            "source": "sobel_vertical.filtered_matrix",
-            "sink": "canny_edge_detector.sobel_vertical_result"
-        },
-        {
-            "source": "canny_edge_detector.image_edges",
-            "sink": "OUTPUT.edges_only_image"
+            "source": "calculate_potts_energy.potts_energy_out",
+            "sink": "OUTPUT.potts_energy_output"
         }
     ]
 }

@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+import matplotlib.pyplot as plt
 from builtins import *
 from collections import defaultdict
 # pragma pylint: enable=redefined-builtin
@@ -74,8 +75,20 @@ def _calculate_potts_energy(data):
     Returns:
         potts_energy: the Pott's Energy for the original image
     '''
-    @TODO
+  
     # ADD CODE HERE
+    x_dev = etai.read(data.x_derivative_path)
+    y_dev = etai.read(data.y_derivative_path)
+    x_dev_eff = (x_dev - 128)*2
+    x_dev_eff = (y_dev - 128)*2
+    plt.imshow(x_dev)
+    plt.show()
+    x_dev_eff[x_dev_eff!=0] = 1
+    y_dev_eff[y_dev_eff!=0] = 1
+    return np.sum(x_dev_eff) + np.sum(y_dev_eff)
+
+
+    
 
 
 def run(config_path, pipeline_config_path=None):

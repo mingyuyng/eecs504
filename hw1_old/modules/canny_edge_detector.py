@@ -52,11 +52,11 @@ class DataConfig(Config):
 
     Inputs:
         input_image (eta.core.types.Image): the input image
-        sobel_horizontal_result (eta.core.types.NpzFile): The result of
+        sobel_horizontal_result (eta.core.types.Image): The result of
             convolving the original image with the "sobel_horizontal" kernel.
             This will give the value of Gx (the gradient in the x
             direction).
-        sobel_vertical_result (eta.core.types.NpzFile): The result of
+        sobel_vertical_result (eta.core.types.Image): The result of
             convolving the original image with the "sobel_vertical" kernel.
             This will give the value of Gy (the gradient in the y
             direction).
@@ -114,7 +114,11 @@ def _create_intensity_orientation_matrices(Gx, Gy):
             the intensity matrix and the second element as the
             orientation matrix.
     '''
-    @TODO
+    Gx = (Gx - 128)*2
+    Gy = (Gy - 128)*2
+    g_intensity = np.sqrt(Gx**2 + Gy**2)
+    orientation = np.arctan(Gy/Gx)
+    return g_intensity, orientation
     # ADD CODE HERE
 
 
@@ -133,16 +137,15 @@ def _non_maximum_suppression(g_intensity, orientation, input_image):
             suppressed to 0 if the corresponding pixel was not a local
             maximum
     '''
-    @TODO
+    pass
     # ADD CODE HERE
 
 
 def _double_thresholding(g_suppressed, low_threshold, high_threshold):
     '''Performs a double threhold. All pixels with gradient intensity larger
-    than 'high_threshold' are considered strong edges, all pixels with gradient
-    intensity in between 'high_threshold' and 'low_threshold' are considered
-    weak edges, and all pixels with gradient intensity smaller than
-    'low_threshold' are suppressed to 0.
+    than 'high_threshold' are considered strong edges, and all pixels
+    with gradient intensity smaller than 'low_threshold' are suppressed
+    to 0.
 
     Args:
         g_suppressed: the gradient intensities of all pixels, after
@@ -153,7 +156,7 @@ def _double_thresholding(g_suppressed, low_threshold, high_threshold):
     Returns:
         g_thresholded: the result of double thresholding
     '''
-    @TODO
+    pass
     # ADD CODE HERE
 
 
@@ -168,15 +171,15 @@ def _hysteresis(g_thresholded):
     Returns:
         g_strong: an image with only strong edges
     '''
-    @TODO
+    pass
     # ADD CODE HERE
 
 
 def _perform_canny_edge_detection(canny_edge_config):
     for data in canny_edge_config.data:
         in_img = etai.read(data.input_image)
-        sobel_horiz = np.load(data.sobel_horizontal_result)["filtered_matrix"]
-        sobel_vert = np.load(data.sobel_vertical_result)["filtered_matrix"]
+        sobel_horiz = etai.read(data.sobel_horizontal_result)
+        sobel_vert = etai.read(data.sobel_vertical_result)
         (g_intensity, orientation) = _create_intensity_orientation_matrices(
                                         sobel_horiz,
                                         sobel_vert)

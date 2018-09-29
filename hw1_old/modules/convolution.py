@@ -17,6 +17,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from builtins import *
+import matplotlib.pyplot as plt
 # pragma pylint: enable=redefined-builtin
 # pragma pylint: enable=unused-wildcard-import
 # pragma pylint: enable=wildcard-import
@@ -26,7 +27,6 @@ import sys
 import numpy as np
 
 from eta.core.config import Config, ConfigError
-import eta.core.utils as etau
 import eta.core.image as etai
 import eta.core.module as etam
 
@@ -52,20 +52,12 @@ class DataConfig(Config):
         input_image (eta.core.types.Image): The input image
 
     Outputs:
-        filtered_image (eta.core.types.ImageFile): [None] The result of
-            convolution, stored in an image (all values are changed to fit
-            between 0 and 255)
-        filtered_matrix (eta.core.types.NpzFile): [None] The result of
-            convolution, stored in a matrix (all values, including their
-            signs, are maintained)
+        filtered_image (eta.core.types.ImageFile): The result of convolution
     '''
 
     def __init__(self, d):
         self.input_image = self.parse_string(d, "input_image")
-        self.filtered_image = self.parse_string(
-            d, "filtered_image", default=None)
-        self.filtered_matrix = self.parse_string(
-            d, "filtered_matrix", default=None)
+        self.filtered_image = self.parse_string(d, "filtered_image")
 
 
 class ParametersConfig(Config):
@@ -110,9 +102,8 @@ def _create_x_derivative_kernel():
     Returns:
         kernel: the x-derivative kernel
     '''
-    @TODO
     # ADD CODE HERE
-
+    return np.array([[-1,1]])
 
 def _create_y_derivative_kernel():
     '''Creates a kernel that calculates the discrete y-derivative
@@ -121,9 +112,8 @@ def _create_y_derivative_kernel():
     Returns:
         kernel: the y-derivative kernel
     '''
-    @TODO
     # ADD CODE HERE
-
+    return np.array([[-1,1]]).T
 
 def _create_sobel_horizontal_kernel():
     '''Creates the 3x3 horizontal sobel kernel.
@@ -131,7 +121,7 @@ def _create_sobel_horizontal_kernel():
     Returns:
         kernel: the sobel horizontal kernel
     '''
-    @TODO
+    return np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
     # ADD CODE HERE
 
 
@@ -141,7 +131,7 @@ def _create_sobel_vertical_kernel():
     Returns:
         kernel: the sobel vertical kernel
     '''
-    @TODO
+    return np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
     # ADD CODE HERE
 
 
@@ -173,8 +163,31 @@ def _convolve(kernel, in_img):
         out_img: the result of convolving the input image with the specified
             kernel
     '''
-    @TODO
+    #@TODO
     # ADD CODE HERE
+    mk,nk = kernel.shape
+    # If the input image has multiple channels, do convolution for each channel
+    if in_img.ndim > 2:
+        mi,ni,num_channel = in_img.shape
+        img_out = np.zeros((mi-mk+1,ni-nk+1,num_channel))
+        for k in range(num_channel):
+            for i in range(mi-mk+1):
+                for j in range(ni-nk+1):
+                    img_out[i,j,k] = np.sum(in_img[i:i+mk,j:j+nk]*kernel)
+    # If the input image is gray scale, just do 2D convolution
+    else:
+        mi,ni = in_img.shape
+        num_channel = 1
+        img_out = np.zeros((mi-mk+1,ni-nk+1))
+        print(in_img.shape)
+        print(kernel.shape)
+        print(kernel)
+        for i in range(mi-mk+1):
+            for j in range(ni-nk+1):
+                img_out[i,j] = np.sum(in_img[i:i+mk,j:j+nk]*kernel)
+    
+    return img_out/2+128
+    
 
 
 def _perform_convolution(convolution_config):
@@ -211,12 +224,7 @@ def _perform_convolution(convolution_config):
                 in_img = etai.gray_to_rgb(in_img)
 
         filtered_image = _convolve(kernel, in_img)
-        if data.filtered_matrix:
-            etau.ensure_basedir(data.filtered_matrix)
-            np.savez(data.filtered_matrix, filtered_matrix=filtered_image)
-        if data.filtered_image:
-            etau.ensure_basedir(data.filtered_image)
-            etai.write(filtered_image, data.filtered_image)
+        etai.write(filtered_image, data.filtered_image)
 
 
 def run(config_path, pipeline_config_path=None):
