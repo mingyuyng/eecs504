@@ -9,13 +9,13 @@
     "inputs": [
         {
             "name": "x_derivative_path",
-            "type": "eta.core.types.Image",
+            "type": "eta.core.types.NpzFile",
             "description": "The result of convolving the original image with the \"x_derivative\" kernel",
             "required": true
         },
         {
             "name": "y_derivative_path",
-            "type": "eta.core.types.Image",
+            "type": "eta.core.types.NpzFile",
             "description": "The result of convolving the original image with the \"y_derivative\" kernel",
             "required": true
         }

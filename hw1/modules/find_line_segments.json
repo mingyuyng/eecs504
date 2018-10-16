@@ -27,7 +27,7 @@
         },
         {
             "name": "gradient_orientation",
-            "type": "eta.core.types.Image",
+            "type": "eta.core.types.NpzFile",
             "description": "The gradient orientation for each pixel in the input image",
             "required": true
         }

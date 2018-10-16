@@ -21,7 +21,7 @@ from builtins import *
 import sys
 
 import numpy as np
-
+import matplotlib.pyplot as plt
 from eta.core.config import Config
 import eta.core.image as etai
 import eta.core.module as etam
@@ -83,6 +83,8 @@ class DataConfig(Config):
             d, "gradient_orientation", default=None)
         self.gradient_intensity = self.parse_string(
             d, "gradient_intensity", default=None)
+        self.gradient_non_max = self.parse_string(
+            d, "gradient_non_max", default=None)
 
 
 class ParametersConfig(Config):
@@ -114,7 +116,9 @@ def _create_intensity_orientation_matrices(Gx, Gy):
             the intensity matrix and the second element as the
             orientation matrix.
     '''
-    @TODO
+    g_intensity = np.sqrt(Gx**2 + Gy**2)
+    orientation = np.arctan(Gy / Gx)
+    return g_intensity, orientation
     # ADD CODE HERE
 
 
@@ -133,8 +137,35 @@ def _non_maximum_suppression(g_intensity, orientation, input_image):
             suppressed to 0 if the corresponding pixel was not a local
             maximum
     '''
-    @TODO
     # ADD CODE HERE
+    mi, ni = g_intensity.shape
+    g_sup = np.zeros((mi, ni))
+    for i in range(mi - 2):
+        for j in range(ni - 2):
+            tmp = orientation[i + 1, j + 1]
+
+            if np.isnan(tmp):
+                continue  # If the orientation is not a number, just skip this pixel.
+            else:
+                tmp = tmp * 180 / np.pi
+                # Left - Right
+                if (tmp >= -22.5 and tmp < 22.5):
+                    if g_intensity[i + 1, j + 1] >= g_intensity[i + 1, j + 2] and g_intensity[i + 1, j + 1] >= g_intensity[i + 1, j]:
+                        g_sup[i + 1, j + 1] = g_intensity[i + 1, j + 1]
+                # Upper Left - Lower Right
+                elif (tmp >= 22.5 and tmp < 67.5):
+                    if g_intensity[i + 1, j + 1] >= g_intensity[i + 2, j + 2] and g_intensity[i + 1, j + 1] >= g_intensity[i, j]:
+                        g_sup[i + 1, j + 1] = g_intensity[i + 1, j + 1]
+                # Upper Right - Lower Left
+                elif (tmp >= -67.5 and tmp < -22.5):
+                    if g_intensity[i + 1, j + 1] >= g_intensity[i, j + 2] and g_intensity[i + 1, j + 1] >= g_intensity[i + 2, j]:
+                        g_sup[i + 1, j + 1] = g_intensity[i + 1, j + 1]
+                # Up - Down
+                else:
+                    if g_intensity[i + 1, j + 1] >= g_intensity[i, j + 1] and g_intensity[i + 1, j + 1] >= g_intensity[i + 2, j + 1]:
+                        g_sup[i + 1, j + 1] = g_intensity[i + 1, j + 1]
+
+    return g_sup
 
 
 def _double_thresholding(g_suppressed, low_threshold, high_threshold):
@@ -153,7 +184,10 @@ def _double_thresholding(g_suppressed, low_threshold, high_threshold):
     Returns:
         g_thresholded: the result of double thresholding
     '''
-    @TODO
+    g_thresholded = np.zeros(g_suppressed.shape)
+    g_thresholded[g_suppressed > high_threshold] = 500  # Label strong pixel as 500
+    g_thresholded[(g_suppressed <= high_threshold) & (g_suppressed > low_threshold)] = 50  # Label weak pixels as 50
+    return g_thresholded
     # ADD CODE HERE
 
 
@@ -168,8 +202,22 @@ def _hysteresis(g_thresholded):
     Returns:
         g_strong: an image with only strong edges
     '''
-    @TODO
-    # ADD CODE HERE
+    m, n = g_thresholded.shape
+    print('Number of strong edges: ', np.sum(g_thresholded == 500))
+    print('Number of weak edges: ', np.sum(g_thresholded == 50))
+    g_strong = np.zeros((m, n))
+    for i in range(m):
+        for j in range(n):
+            if g_thresholded[i, j] == 50:
+                # If there is a strong edge near by, set it to strong. Otherwise suppress it with 0
+                if 500 in g_thresholded[max(0, i - 1):min(m, i + 1), max(0, j - 1):min(n, j + 1)]:
+                    g_strong[i, j] = 500
+                else:
+                    g_strong[i, j] = 0
+            elif g_thresholded[i, j] == 500:
+                g_strong[i, j] = 500
+
+    return g_strong
 
 
 def _perform_canny_edge_detection(canny_edge_config):
@@ -178,18 +226,21 @@ def _perform_canny_edge_detection(canny_edge_config):
         sobel_horiz = np.load(data.sobel_horizontal_result)["filtered_matrix"]
         sobel_vert = np.load(data.sobel_vertical_result)["filtered_matrix"]
         (g_intensity, orientation) = _create_intensity_orientation_matrices(
-                                        sobel_horiz,
-                                        sobel_vert)
+            sobel_horiz,
+            sobel_vert)
         if data.gradient_intensity is not None:
             etai.write(g_intensity, data.gradient_intensity)
         if data.gradient_orientation is not None:
-            etai.write(orientation, data.gradient_orientation)
+            np.savez(data.gradient_orientation, gradient_orientation=orientation)
         g_suppressed = _non_maximum_suppression(g_intensity, orientation,
                                                 in_img)
+        if data.gradient_non_max is not None:
+            etai.write(g_suppressed, data.gradient_non_max)
+
         g_thresholded = _double_thresholding(
-                            g_suppressed,
-                            canny_edge_config.parameters.low_threshold,
-                            canny_edge_config.parameters.high_threshold)
+            g_suppressed,
+            canny_edge_config.parameters.low_threshold,
+            canny_edge_config.parameters.high_threshold)
         g_strong = _hysteresis(g_thresholded)
         g_strong = g_strong.astype(int)
 

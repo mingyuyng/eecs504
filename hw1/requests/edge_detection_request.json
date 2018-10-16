@@ -4,7 +4,10 @@
         "input_image": "data/Canny_input.jpg"
     },
     "outputs": {
-        "edges_only_image": "out/Canny_input_edges.jpg"
+        "edges_only_image": "out/Canny_input_edges.jpg",
+        "image_orientation": "out/Canny_input_orientation.npz",
+        "image_intensity": "out/Canny_input_intensity.jpg",
+        "image_non_max": "out/Canny_input_non_max.jpg"   
     },
     "parameters": {}
 }

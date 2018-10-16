@@ -15,6 +15,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from builtins import *
+from collections import defaultdict
 # pragma pylint: enable=redefined-builtin
 # pragma pylint: enable=unused-wildcard-import
 # pragma pylint: enable=wildcard-import
@@ -22,10 +23,12 @@ from builtins import *
 import sys
 
 import numpy as np
-
+import matplotlib.pyplot as plt
 from eta.core.config import Config, ConfigError
 import eta.core.image as etai
 import eta.core.module as etam
+import eta.core.serial as etas
+import cv2
 
 
 class FindSegmentsConfig(etam.BaseModuleConfig):
@@ -66,15 +69,26 @@ class DataConfig(Config):
         self.line_segments = self.parse_string(d, "line_segments")
 
 
-@TODO
 '''ADD CODE HERE AND SPECIFY ANY PARAMETERS ABOVE. There can be many
 solutions to this problem, so we are leaving it open-ended.
 '''
 
 
 def _find_line_segments(find_segments_config):
-    @TODO
     '''ADD CODE HERE'''
+    for data in find_segments_config.data:
+        in_img = etai.read(data.input_image)
+        edge_img = etai.read(data.canny_edge_output)
+        grad_intensity = etai.read(data.gradient_intensity)
+        grad_orientation = np.load(data.gradient_orientation)["gradient_orientation"]
+
+    lines = cv2.HoughLinesP(edge_img, 1, np.pi / 180, 100, 50, 2)
+    potts_energy = defaultdict(lambda: defaultdict())
+    for i, coor in enumerate(lines):
+        potts_energy["Line_segments No" + str(i)]["Coordinate 1"] = coor[0, 0:2]
+        potts_energy["Line_segments No" + str(i)]["Coordinate 2"] = coor[0, 2:4]
+
+    etas.write_json(potts_energy, data.line_segments)
 
 
 def run(config_path, pipeline_config_path=None):

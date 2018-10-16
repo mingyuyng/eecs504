@@ -30,6 +30,7 @@ from eta.core.config import Config
 import eta.core.image as etai
 import eta.core.module as etam
 import eta.core.serial as etas
+import matplotlib.pyplot as plt
 
 
 class PottsEnergyConfig(etam.BaseModuleConfig):
@@ -74,8 +75,21 @@ def _calculate_potts_energy(data):
     Returns:
         potts_energy: the Pott's Energy for the original image
     '''
-    @TODO
-    # ADD CODE HERE
+    x_dev = np.load(data.x_derivative_path)['filtered_matrix']
+    y_dev = np.load(data.y_derivative_path)['filtered_matrix']
+
+    fig = plt.figure()
+    ax = fig.add_subplot(121)
+    ax.imshow(x_dev)
+    ax.set_title('X derivative')
+    ax = fig.add_subplot(122)
+    ax.imshow(y_dev)
+    ax.set_title('Y derivative')
+    plt.show()
+    x_dev[x_dev != 0] = 1
+    y_dev[y_dev != 0] = 1
+
+    return np.sum(x_dev) + np.sum(y_dev)
 
 
 def run(config_path, pipeline_config_path=None):

@@ -58,11 +58,11 @@
             "sink": "y_derivative_convolution.input_image"
         },
         {
-            "source": "x_derivative_convolution.filtered_image",
+            "source": "x_derivative_convolution.filtered_matrix",
             "sink": "calculate_potts_energy.x_derivative_path"
         },
         {
-            "source": "y_derivative_convolution.filtered_image",
+            "source": "y_derivative_convolution.filtered_matrix",
             "sink": "calculate_potts_energy.y_derivative_path"
         },
         {

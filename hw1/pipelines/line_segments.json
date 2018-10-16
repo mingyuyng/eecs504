@@ -5,7 +5,7 @@
         "version": "0.1.0",
         "description": "A pipeline for finding the line segments in an image."
     },
-    "inputs": ["image_edges"],
+    "inputs": ["input_image","image_edges","grad_intensity","grad_orientation"],
     "outputs": ["line_segment_output"],
     "modules": {
         "find_line_segments": {
@@ -18,6 +18,18 @@
         {
             "source": "INPUT.input_image",
             "sink": "find_line_segments.input_image"
+        },
+        {
+            "source": "INPUT.image_edges",
+            "sink": "find_line_segments.canny_edge_output"
+        },
+        {
+            "source": "INPUT.grad_intensity",
+            "sink": "find_line_segments.gradient_intensity"
+        },
+        {
+            "source": "INPUT.grad_orientation",
+            "sink": "find_line_segments.gradient_orientation"
         },
         {
             "source": "find_line_segments.line_segments",

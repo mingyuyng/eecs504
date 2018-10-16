@@ -1,0 +1,14 @@
+{
+    "pipeline": "only_harris_corner",
+    "inputs": {
+        "input_image": "data/checkerboard.png"
+    },
+    "outputs": {
+        "corners_before_suppression": "out/checkerboard_corners_before_sup.png",
+        "corners_after_suppression": "out/checkerboard_corners_after_sup.png"
+    },
+    "parameters": {
+        "harris_corner.window_size": 5,
+        "harris_corner.threshold": 80000
+    }
+}

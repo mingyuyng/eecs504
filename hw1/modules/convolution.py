@@ -110,7 +110,7 @@ def _create_x_derivative_kernel():
     Returns:
         kernel: the x-derivative kernel
     '''
-    @TODO
+    return np.array([[-1,1]])
     # ADD CODE HERE
 
 
@@ -121,7 +121,7 @@ def _create_y_derivative_kernel():
     Returns:
         kernel: the y-derivative kernel
     '''
-    @TODO
+    return np.array([[-1,1]]).T
     # ADD CODE HERE
 
 
@@ -131,7 +131,7 @@ def _create_sobel_horizontal_kernel():
     Returns:
         kernel: the sobel horizontal kernel
     '''
-    @TODO
+    return np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
     # ADD CODE HERE
 
 
@@ -141,7 +141,7 @@ def _create_sobel_vertical_kernel():
     Returns:
         kernel: the sobel vertical kernel
     '''
-    @TODO
+    return np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
     # ADD CODE HERE
 
 
@@ -173,7 +173,27 @@ def _convolve(kernel, in_img):
         out_img: the result of convolving the input image with the specified
             kernel
     '''
-    @TODO
+
+    #Read the shape of input kernel
+    mk,nk = kernel.shape
+
+    # If the input image has more than one channel, 
+    # do convolution for each channel
+    if in_img.ndim > 2:
+        mi,ni,num_channel = in_img.shape
+        img_out = np.zeros((mi-mk+1,ni-nk+1,num_channel))
+        for k in range(num_channel):
+            for i in range(mi-mk+1):
+                for j in range(ni-nk+1):
+                    img_out[i,j,k] = np.sum(in_img[i:i+mk,j:j+nk,k]*kernel)
+    else:
+        mi,ni = in_img.shape
+        img_out = np.zeros((mi-mk+1,ni-nk+1))
+        for i in range(mi-mk+1):
+            for j in range(ni-nk+1):
+                img_out[i,j] = np.sum(in_img[i:i+mk,j:j+nk]*kernel)
+    
+    return img_out
     # ADD CODE HERE
 
 

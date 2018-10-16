@@ -1,0 +1,11 @@
+{
+    "pipeline": "image_stitching",
+    "inputs": {
+        "image_1": "data/red1.jpg",
+        "image_2": "data/red2.jpg"
+    },
+    "outputs": {
+        "stitched_image": "out/stitched_image.png"
+    },
+    "parameters": {}
+}

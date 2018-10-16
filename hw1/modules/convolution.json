@@ -18,8 +18,14 @@
         {
             "name": "filtered_image",
             "type": "eta.core.types.ImageFile",
-            "description": "The result of convolution",
-            "required": true
+            "description": "The result of convolution, stored in an image (all values are changed to fit between 0 and 255)",
+            "required": false
+        },
+        {
+            "name": "filtered_matrix",
+            "type": "eta.core.types.NpzFile",
+            "description": "The result of convolution, stored in a matrix (all values, including their signs, are maintained)",
+            "required": false
         }
     ],
     "parameters": [

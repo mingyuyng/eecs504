@@ -1,7 +1,10 @@
 {
     "pipeline": "line_segments",
     "inputs": {
-        "image_edges": "data/Canny_input_edges.jpg"
+        "input_image": "data/Canny_input.jpg",
+        "image_edges": "out/Canny_input_edges.jpg",
+        "grad_intensity": "out/Canny_input_intensity.jpg",
+        "grad_orientation": "out/Canny_input_orientation.npz"
     },
     "outputs": {
         "line_segment_output": "out/output_points.json"
