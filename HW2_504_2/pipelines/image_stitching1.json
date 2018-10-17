@@ -1,0 +1,138 @@
+{
+    "info": {
+        "name": "image_stitching1",
+        "type": "eta.core.types.Pipeline",
+        "version": "0.1.0",
+        "description": "A pipeline for stitching two parts of an image."
+    },
+    "inputs": ["image_1",
+               "image_2"],
+    "outputs": ["corner_locs_1",
+                "corner_locs_2",
+                "corner_bef_1",
+                "corner_aft_1",
+                "corner_bef_2",
+                "corner_aft_2"],
+    "modules": {
+        "sobel_horizontal_1": {
+            "name": "convolution",
+            "tunable_parameters": [],
+            "set_parameters": {
+                "kernel_type": "sobel_horizontal",
+                "image_type": "grayscale",
+                "image_max_range": 1
+            }
+        },
+        "sobel_horizontal_2": {
+            "name": "convolution",
+            "tunable_parameters": [],
+            "set_parameters": {
+                "kernel_type": "sobel_horizontal",
+                "image_type": "grayscale",
+                "image_max_range": 1
+            }
+        },
+        "sobel_vertical_1": {
+            "name": "convolution",
+            "tunable_parameters": [],
+            "set_parameters": {
+                "kernel_type": "sobel_vertical",
+                "image_type": "grayscale",
+                "image_max_range": 1
+            }
+        },
+        "sobel_vertical_2": {
+            "name": "convolution",
+            "tunable_parameters": [],
+            "set_parameters": {
+                "kernel_type": "sobel_vertical",
+                "image_type": "grayscale",
+                "image_max_range": 1
+            }
+        },
+        "harris_corner_1": {
+            "name": "harris",
+            "tunable_parameters": [
+                "window_half_size", "threshold"
+            ],
+            "set_parameters": {
+                "threshold": 20
+            }
+        },
+        "harris_corner_2": {
+            "name": "harris",
+            "tunable_parameters": [
+                "window_half_size", "threshold"
+            ],
+            "set_parameters": {
+                "threshold": 20
+            }
+        }
+    },
+    "connections": [
+        {
+            "source": "INPUT.image_1",
+            "sink": "sobel_horizontal_1.input_image"
+        },
+        {
+            "source": "INPUT.image_2",
+            "sink": "sobel_horizontal_2.input_image"
+        },
+        {
+            "source": "INPUT.image_1",
+            "sink": "sobel_vertical_1.input_image"
+        },
+        {
+            "source": "INPUT.image_2",
+            "sink": "sobel_vertical_2.input_image"
+        },
+        {
+            "source": "INPUT.image_1",
+            "sink": "harris_corner_1.input_image"
+        },
+        {
+            "source": "INPUT.image_2",
+            "sink": "harris_corner_2.input_image"
+        },
+        {
+            "source": "sobel_horizontal_1.filtered_matrix",
+            "sink": "harris_corner_1.sobel_horizontal_result"
+        },
+        {
+            "source": "sobel_horizontal_2.filtered_matrix",
+            "sink": "harris_corner_2.sobel_horizontal_result"
+        },
+        {
+            "source": "sobel_vertical_1.filtered_matrix",
+            "sink": "harris_corner_1.sobel_vertical_result"
+        },
+        {
+            "source": "sobel_vertical_2.filtered_matrix",
+            "sink": "harris_corner_2.sobel_vertical_result"
+        },
+        {
+            "source": "harris_corner_1.corner_locations",
+            "sink": "OUTPUT.corner_locs_1"
+        },
+        {
+            "source": "harris_corner_2.corner_locations",
+            "sink": "OUTPUT.corner_locs_2"
+        },
+        {
+            "source": "harris_corner_1.corners_img_before_sup",
+            "sink": "OUTPUT.corner_bef_1"
+        },
+        {
+            "source": "harris_corner_2.corners_img_before_sup",
+            "sink": "OUTPUT.corner_bef_2"
+        },
+        {
+            "source": "harris_corner_1.corners_img_after_sup",
+            "sink": "OUTPUT.corner_aft_1"
+        },
+        {
+            "source": "harris_corner_2.corners_img_after_sup",
+            "sink": "OUTPUT.corner_aft_2"
+        }
+    ]
+}

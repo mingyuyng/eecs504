@@ -1,0 +1,15 @@
+{
+    "pipeline": "image_stitching2",
+    "inputs": {
+        "image_1": "data/image_stitching/red1.jpg",
+        "image_2": "data/image_stitching/red2.jpg",
+        "corner_locs_1": "out/corner_locs_1.npz",
+        "corner_locs_2": "out/corner_locs_2.npz"
+    },
+    "outputs": {
+        "stitched_image": "out/stitched_image.png"
+    },
+    "parameters": {
+        "image_stitching.no_correspondence": 20
+    }
+}

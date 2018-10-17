@@ -1,0 +1,44 @@
+{
+    "info": {
+        "name": "image_stitching2",
+        "type": "eta.core.types.Pipeline",
+        "version": "0.1.0",
+        "description": "A pipeline for stitching two parts of an image."
+    },
+    "inputs": ["corner_locs_1",
+                "corner_locs_2",
+                "image_1",
+                "image_2"],
+    "outputs": ["stitched_image"],
+    "modules": {
+        "image_stitching": {
+            "name": "image_stitching",
+            "tunable_parameters": [
+                "no_correspondence"
+            ],
+            "set_parameters": {}
+        }
+    },
+    "connections": [
+        {
+            "source": "INPUT.corner_locs_1",
+            "sink": "image_stitching.corner_locs_1"
+        },
+        {
+            "source": "INPUT.corner_locs_2",
+            "sink": "image_stitching.corner_locs_2"
+        },
+        {
+            "source": "INPUT.image_1",
+            "sink": "image_stitching.image_1"
+        },
+        {
+            "source": "INPUT.image_2",
+            "sink": "image_stitching.image_2"
+        },
+        {
+            "source": "image_stitching.stitched_image",
+            "sink": "OUTPUT.stitched_image"
+        }
+    ]
+}
