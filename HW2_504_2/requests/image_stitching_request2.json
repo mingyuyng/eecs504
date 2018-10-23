@@ -7,9 +7,9 @@
         "corner_locs_2": "out/corner_locs_2.npz"
     },
     "outputs": {
-        "stitched_image": "out/stitched_image.png"
+        "stitched_image": "out/stitched_image_4.png"
     },
     "parameters": {
-        "image_stitching.no_correspondence": 20
+        "image_stitching.no_correspondence": 6
     }
 }

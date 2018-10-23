@@ -66,7 +66,7 @@ class DataConfig(Config):
             d, "filtered_image")
 
 
-def _apply_steerable_filter(G_x, G_y):
+def _apply_steerable_filter(Gx, Gy):
     '''Applies the steerable filter on the given image, using the results
     from sobel kernel convolution.
 
@@ -83,8 +83,27 @@ def _apply_steerable_filter(G_x, G_y):
     '''
     # TODO
     # REPLACE THE CODE BELOW WITH YOUR IMPLEMENTATION
-    g_intensity = np.zeros((2,2))
-    return g_intensity
+    g_intensity = np.sqrt(Gx**2 + Gy**2)
+    orientation = np.arctan(Gy / Gx)
+
+    # Check the orientation of gradients for all pixels.
+
+    mi, ni = g_intensity.shape
+    g_sup = np.zeros((mi, ni))
+    for i in range(mi):
+        for j in range(ni):
+            tmp = orientation[i, j]
+            if np.isnan(tmp):
+                continue  # If the orientation is not a number, just skip this pixel.
+            else:
+                tmp = tmp * 180 / np.pi
+                # Upper Left - Lower Right or Upper Right - Lower Left
+                if (tmp >= 10 and tmp < 80) or (tmp >= -80 and tmp < -10):
+                    g_sup[i, j] = g_intensity[i, j]
+                else:
+                    g_sup[i, j] = 0
+
+    return g_sup
 
 
 def _filter_image(steerable_filter_config):

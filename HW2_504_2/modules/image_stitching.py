@@ -204,6 +204,8 @@ def _get_homography(img1_keypoints, img2_keypoints):
     '''
     # TODO
     # REPLACE THE CODE BELOW WITH YOUR IMPLEMENTATION
+
+    # Get the homography matrix from image1 to image2
     n = len(img1_keypoints)
     A = []
     y = []
@@ -220,8 +222,9 @@ def _get_homography(img1_keypoints, img2_keypoints):
     # Solve the least square problem and regenerate the matrix H
     x = np.linalg.inv(np.dot(A.T, A)).dot(A.T).dot(y)
     x = np.append(x, 1)
-    homog_matrix = np.reshape(x, (3, 3))
+    homog_matrix_12 = np.reshape(x, (3, 3))
 
+    # Get the homography matrix from image2 to image1
     for i in range(n):
         tmp = np.kron(np.eye(2), np.append(img2_keypoints[i], 1))
         tmp = np.concatenate((tmp, -np.outer(img1_keypoints[i], img2_keypoints[i])), axis=1)
@@ -235,12 +238,13 @@ def _get_homography(img1_keypoints, img2_keypoints):
     # Solve the least square problem and regenerate the matrix H
     x = np.linalg.inv(np.dot(A.T, A)).dot(A.T).dot(y)
     x = np.append(x, 1)
-    homog_matrix_inv = np.reshape(x, (3, 3))
+    homog_matrix_21 = np.reshape(x, (3, 3))
+    print(img1_keypoints)
+    print(img2_keypoints)
+    return homog_matrix_12, homog_matrix_21
 
-    return homog_matrix, homog_matrix_inv
 
-
-def _overlap(img1, img2, homog_matrix, homog_matrix_inv):
+def _overlap(img1, img2, homog_matrix_12, homog_matrix_21):
     '''Applies a homography transformation to img2 to stitch img1 and img2
     togther.
 
@@ -255,58 +259,75 @@ def _overlap(img1, img2, homog_matrix, homog_matrix_inv):
     # TODO
     # REPLACE THE CODE BELOW WITH YOUR IMPLEMENTATION
 
-    # Fugure out the size of whole image after stitching
+    # Fugure out the size of whole image after stitching image2 to image1
+
     m1, n1, channel1 = img1.shape
     m2, n2, channel2 = img2.shape
-    x = np.arange(0, n1)
-    y = np.arange(0, m1)
+    x = np.arange(0, n2)
+    y = np.arange(0, m2)
     gx, gy = np.meshgrid(x, y)
     gx_1d = np.reshape(gx, (1, gx.size))
     gy_1d = np.reshape(gy, (1, gy.size))
 
+    # Map the locations of image2 to the perspective of image1
     loc_1 = np.concatenate((gx_1d, gy_1d), axis=0)
-    loc_11 = np.concatenate((loc_1, np.ones((1, gx_1d.size))), axis=0)
-    loc_2 = homog_matrix.dot(loc_11)
-
-    loc_2 = loc_2 / loc_2[-1]
-    loc_2 = loc_2[0:2]
+    loc_1 = np.concatenate((loc_1, np.ones((1, gx_1d.size))), axis=0)
+    loc_2 = homog_matrix_21.dot(loc_1)
+    loc_2 = (loc_2 / loc_2[-1])[0:2]
 
     bound_x_r, bound_y_r = np.ceil(np.max(loc_2, axis=1))
     bound_x_l, bound_y_l = np.floor(np.min(loc_2, axis=1))
+    bound_x_l_old = bound_x_l
     bound_x_l = int(np.min([bound_x_l, 0]))
     bound_y_l = int(np.min([bound_y_l, 0]))
-    bound_x_r = int(np.max([bound_x_r, n2]))
-    bound_y_r = int(np.max([bound_y_r, m2]))
+    bound_x_r = int(np.max([bound_x_r, n1]))
+    bound_y_r = int(np.max([bound_y_r, m1]))
     h = bound_y_r - bound_y_l
     w = bound_x_r - bound_x_l
-    new_image = np.zeros((h, w, 3))
-    H_inv = homog_matrix_inv
 
-    # Backward Wrapping
+    #bound_x_l = 0
+    #bound_y_l = 0
+    #h = m1
+    #w = n1
+    print(h)
+    print(w)
+    # The size of stitched image is (h,w)
+    new_image = np.zeros((h, w, 3))
+    #dst = cv2.warpPerspective(img2, homog_matrix_21, (w, h))
+    #plt.subplot(121), plt.imshow(img2), plt.title('Input')
+    #plt.subplot(122), plt.imshow(dst), plt.title('Output')
+    # plt.show()
+    #import pdb
+    # pdb.set_trace()  # breakpoint 013ae33f //
+
+    # Backward Wrapping from the perspective of image1
     for i in range(h):
         for j in range(w):
             pos = np.array([j + bound_x_l, i + bound_y_l, 1])
-            pos_old = H_inv.dot(pos)
-            pos_old = pos_old / pos_old[-1]
-            pos_old = pos_old[0:2]
-            # Bilinear Interpolation
-            if (pos_old[0] < 0) or (pos_old[0] >= n1 - 1) or (pos_old[1] < 0) or (pos_old[1] >= m1 - 1):
+            pos_old = homog_matrix_12.dot(pos)
+            pos_old = (pos_old / pos_old[-1])[0:2]
+
+            if (pos_old[0] < 0) or (pos_old[0] >= n2 - 1) or (pos_old[1] < 0) or (pos_old[1] >= m2 - 1):
                 new_image[i, j, :] = np.zeros(3)
+                if (pos[0] >= 0) and (pos[0] < n1 - 1) and (pos[1] >= 0) and (pos[1] < m1 - 1):
+                    new_image[i, j, :] = img1[pos[1], pos[0], :]
             else:
                 ix1, iy1 = np.floor(pos_old)
                 ix1 = int(ix1)
                 iy1 = int(iy1)
                 ix2 = ix1 + 1
                 iy2 = iy1 + 1
-                tmp = img1[iy1, ix1, :] * (ix2 - pos_old[0]) * (iy2 - pos_old[1]) + img1[iy1, ix2, :] * (pos_old[0] - ix1) * (iy2 - pos_old[1])
-                tmp = tmp + img1[iy2, ix1, :] * (ix2 - pos_old[0]) * (pos_old[1] - iy1) + img1[iy2, ix2, :] * (pos_old[0] - ix1) * (pos_old[1] - iy1)
+                # Bilinear Interpolation
+                tmp = img2[iy1, ix1, :] * (ix2 - pos_old[0]) * (iy2 - pos_old[1])
+                tmp = tmp + img2[iy1, ix2, :] * (pos_old[0] - ix1) * (iy2 - pos_old[1])
+                tmp = tmp + img2[iy2, ix1, :] * (ix2 - pos_old[0]) * (pos_old[1] - iy1)
+                tmp = tmp + img2[iy2, ix2, :] * (pos_old[0] - ix1) * (pos_old[1] - iy1)
                 new_image[i, j, :] = tmp
+                if (pos[0] >= 0) and (pos[0] < n1 - 1) and (pos[1] >= 0) and (pos[1] < m1 - 1):
+                    #weight = (pos[0] - bound_x_l_old) / (n1 - bound_x_l_old)
+                    weight = 0.5
+                    new_image[i, j, :] = img1[pos[1], pos[0], :] * (1 - weight) + new_image[i, j, :] * weight
 
-            if (j + bound_x_l >= 0) and (j + bound_x_l < n2 - 1) and (i + bound_y_l >= 0) and (i + bound_y_l < m2 - 1):
-                new_image[i, j, :] = (new_image[i, j, :] + img2[i + bound_y_l, j + bound_x_l, :]) / 2
-
-    plt.imshow(new_image)
-    plt.show()
     return new_image
 
 

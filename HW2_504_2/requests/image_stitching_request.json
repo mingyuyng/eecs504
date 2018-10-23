@@ -8,6 +8,6 @@
         "stitched_image": "out/stitched_image.png"
     },
     "parameters": {
-        "image_stitching.no_correspondence": 4
+        "image_stitching.no_correspondence": 20
     }
 }

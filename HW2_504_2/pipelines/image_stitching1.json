@@ -56,7 +56,7 @@
                 "window_half_size", "threshold"
             ],
             "set_parameters": {
-                "threshold": 20
+                "threshold": 1
             }
         },
         "harris_corner_2": {
@@ -65,7 +65,7 @@
                 "window_half_size", "threshold"
             ],
             "set_parameters": {
-                "threshold": 20
+                "threshold": 1
             }
         }
     },
